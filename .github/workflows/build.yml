@@ -36,9 +36,9 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.buildType == 'APK' || github.event_name == 'pull_request' }}
         run: flutter build apk --release
 
-      - name: Upload APK Artifact
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.buildType == 'APK' || github.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: flutter-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+      # - name: Upload APK Artifact
+      #   if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.buildType == 'APK' || github.event_name == 'pull_request' }}
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: flutter-apk
+      #     path: build/app/outputs/flutter-apk/app-release.apk
