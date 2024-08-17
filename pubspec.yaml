@@ -61,6 +61,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/vecteezy_3d-doctor-character-presenting-and-lying-on-big-empty-phone_36485009.png
+    - assets/images/vecteezy_3d-doctor-character-jump-from-phone-screen-with-megaphone_36485039.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

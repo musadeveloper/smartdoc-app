@@ -17,6 +17,11 @@ class AuthService {
     }
   }
 
+  // Method to get the current user's email
+  String getCurrentUserEmail() {
+    return _auth.currentUser?.email ?? 'Guest';
+  }
+
   // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
