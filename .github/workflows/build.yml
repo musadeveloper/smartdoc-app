@@ -1,9 +1,20 @@
-name: Build Project
+name: Build Flutter Project
 
 on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      buildType:
+        description: 'Type of build to perform (e.g., APK, iOS, Web)'
+        required: true
+        default: 'APK'
+        type: choice
+        options:
+          - APK
+          - iOS
+          - Web
 
 jobs:
   build:
@@ -21,10 +32,15 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Run tests
+        run: flutter test
+
       - name: Build APK
-        run: flutter build apk
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.buildType == 'APK' || github.event_name == 'pull_request' }}
+        run: flutter build apk --release
 
       - name: Upload APK Artifact
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.buildType == 'APK' || github.event_name == 'pull_request' }}
         uses: actions/upload-artifact@v3
         with:
           name: flutter-apk
