@@ -59,6 +59,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - assets/images/vecteezy_3d-doctor-character-presenting-and-lying-on-big-empty-phone_36485009.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
