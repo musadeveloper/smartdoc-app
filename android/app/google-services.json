@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1098315296779",
+    "project_id": "smartdoc2024-d4292",
+    "storage_bucket": "smartdoc2024-d4292.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1098315296779:android:7576fba72846b060e5570e",
+        "android_client_info": {
+          "package_name": "com.smart_doc.smart_doc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkW_BlweS2nsPzZ71EoxcWrpfhqoQ-y7I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
