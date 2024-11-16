@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => HomePage(),
         '/login': (context) => LoginPage(),
         '/requestDiagnosis': (context) => RequestDiagnosisPage(),
-        '/viewDiagnosis': (context) => ViewDiagnosisPage(),
+        '/viewDiagnosis': (context) => ViewDiagnosisPage(result: '',),
         '/home': (context) => HomePage(), // Optional, for navigation consistency
         //'/profile': (context) => ProfilePage(), // Optional, add your profile page
       },

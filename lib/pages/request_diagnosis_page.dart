@@ -1,11 +1,14 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import '/services/auth_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:image/image.dart' as img;
+import 'view_diagnosis_page.dart';
+import '/services/auth_service.dart';
 
 class RequestDiagnosisPage extends StatefulWidget {
   final AuthService _authService = AuthService();
-
   @override
   _RequestDiagnosisPageState createState() => _RequestDiagnosisPageState();
 }
@@ -14,6 +17,22 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
   File? _image;
   bool _isPhotoSelected = false;
   bool _isSymptomsSelected = false;
+  bool _isLoading = false;
+  List<String>? _labels;
+
+  final AuthService _authService = AuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLabels();
+  }
+
+  // Load labels from the labels.txt file, but do not load the model
+  Future<void> _loadLabels() async {
+    final labelFile = await rootBundle.loadString('assets/labels.txt');
+    _labels = labelFile.split('\n');
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -21,19 +40,37 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
 
     if (pickedImage != null) {
       setState(() {
-        _image = File(pickedImage.path); // Store the image file
+        _image = File(pickedImage.path);
+        _isPhotoSelected = true;
+        _isSymptomsSelected = false;
       });
     }
   }
 
-  void _submitDiagnosisRequest() {
+  // Disable model inference
+  Future<void> _submitDiagnosisRequest() async {
     if (_isPhotoSelected || _isSymptomsSelected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Diagnosis request submitted successfully.'),
+      setState(() {
+        _isLoading = true;
+      });
+
+      String diagnosisResult = 'No result';
+
+      if (_isPhotoSelected && _image != null) {
+        // No model inference, simply return a placeholder result
+        diagnosisResult = 'Diagnosis result disabled';
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ViewDiagnosisPage(result: diagnosisResult),
         ),
       );
-      // Add your submission logic here.
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -45,19 +82,19 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String userEmail = widget._authService.getCurrentUserEmail();
+    final String userEmail = _authService.getCurrentUserEmail(); // Example user email
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Request a Diagnosis'),
         backgroundColor: Color(0xFF5DB8AE),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Added Container for Information Box
+            // Information Box
             Container(
               margin: EdgeInsets.all(16.0),
               padding: EdgeInsets.all(16.0),
@@ -103,7 +140,7 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
                   onChanged: (bool? value) {
                     setState(() {
                       _isPhotoSelected = value!;
-                      _isSymptomsSelected = false; // Deselect other option
+                      _isSymptomsSelected = false;
                     });
                   },
                 ),
@@ -117,7 +154,7 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
                   onChanged: (bool? value) {
                     setState(() {
                       _isSymptomsSelected = value!;
-                      _isPhotoSelected = false; // Deselect other option
+                      _isPhotoSelected = false;
                     });
                   },
                 ),
@@ -126,20 +163,23 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
             ),
             SizedBox(height: 20),
 
-            // Show icon when photo option is selected
+            // Show camera icon if photo option is selected
             if (_isPhotoSelected)
               Center(
                 child: Column(
                   children: [
-                    IconButton(
-                      iconSize: 100.0,
-                      icon: Icon(Icons.photo_camera, color: Color(0xFF5DB8AE)),
-                      onPressed: _pickImage, // Use the pick image function
-                    ),
-                    Text(
-                      'Take/Upload a Photo',
-                      style: TextStyle(fontSize: 18, color: Color(0xFF5DB8AE)),
-                    ),
+                    if (_image == null)
+                      IconButton(
+                        icon: Icon(Icons.camera_alt, size: 100, color: Colors.grey),
+                        onPressed: _pickImage,
+                      ),
+                    if (_image != null)
+                      Image.file(
+                        _image!,
+                        height: 200,
+                        width: 200,
+                        fit: BoxFit.cover,
+                      ),
                   ],
                 ),
               ),
@@ -152,11 +192,17 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
                 ),
                 maxLines: 4,
               ),
-            Spacer(),
+            SizedBox(height: 20),
+
+            // Show loading indicator if processing
+            if (_isLoading)
+              Center(child: CircularProgressIndicator()),
+
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: _submitDiagnosisRequest,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF5DB8AE), // Updated color property
+                backgroundColor: Color(0xFF5DB8AE),
                 padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
               ),
               child: Center(
