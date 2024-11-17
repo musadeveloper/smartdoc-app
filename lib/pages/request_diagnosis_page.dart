@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:image/image.dart' as img;
+import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 import 'view_diagnosis_page.dart';
 import '/services/auth_service.dart';
 
@@ -21,14 +22,21 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
   List<String>? _labels;
 
   final AuthService _authService = AuthService();
+  late Interpreter _interpreter;
 
   @override
   void initState() {
     super.initState();
+    _loadModel();
     _loadLabels();
   }
 
-  // Load labels from the labels.txt file, but do not load the model
+  // Load the TFLite model
+  Future<void> _loadModel() async {
+    _interpreter = await Interpreter.fromAsset('model.tflite');
+  }
+
+  // Load labels from the labels.txt file
   Future<void> _loadLabels() async {
     final labelFile = await rootBundle.loadString('assets/labels.txt');
     _labels = labelFile.split('\n');
@@ -47,7 +55,6 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
     }
   }
 
-  // Disable model inference
   Future<void> _submitDiagnosisRequest() async {
     if (_isPhotoSelected || _isSymptomsSelected) {
       setState(() {
@@ -57,8 +64,20 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
       String diagnosisResult = 'No result';
 
       if (_isPhotoSelected && _image != null) {
-        // No model inference, simply return a placeholder result
-        diagnosisResult = 'Diagnosis result disabled';
+        try {
+          // Preprocess the image
+          var input = await _processImage(_image!);
+
+          // Run inference
+          var output = List.filled(_labels!.length, 0.0).reshape([1, _labels!.length]);
+          _interpreter.run(input, output);
+
+          // Get the predicted label
+          int predictedIndex = output[0].indexOf(output[0].reduce((a, b) => a > b ? a : b));
+          diagnosisResult = _labels![predictedIndex];
+        } catch (e) {
+          diagnosisResult = 'Error during inference: $e';
+        }
       }
 
       setState(() {
@@ -78,6 +97,32 @@ class _RequestDiagnosisPageState extends State<RequestDiagnosisPage> {
         ),
       );
     }
+  }
+
+  // Process image for the TFLite model
+  Future<List<List<List<double>>>> _processImage(File imageFile) async {
+    final rawImage = File(imageFile.path).readAsBytesSync();
+    final decodedImage = img.decodeImage(rawImage);
+
+    if (decodedImage == null) throw 'Error decoding image';
+
+    // Resize the image to 224x224 for the model
+    final resizedImage = img.copyResize(decodedImage, width: 224, height: 224);
+
+    // Normalize the image (convert pixels to float values)
+    List<List<List<double>>> normalizedImage = List.generate(
+      224,
+          (y) => List.generate(
+        224,
+            (x) => [
+          resizedImage.getPixel(x, y).r / 255.0,
+          resizedImage.getPixel(x, y).g / 255.0,
+          resizedImage.getPixel(x, y).b / 255.0,
+        ],
+      ),
+    );
+
+    return normalizedImage;
   }
 
   @override
