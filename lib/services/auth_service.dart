@@ -31,4 +31,23 @@ class AuthService {
   Stream<User?> get user {
     return _auth.authStateChanges();
   }
+
+  Future<User?> registerWithEmailPassword(String email, String password) async {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return userCredential.user;
+    } catch (e) {
+      // Print detailed error message
+      print('Registration Error: $e');
+      if (e is FirebaseAuthException) {
+        print('Error Code: ${e.code}');
+        print('Error Message: ${e.message}');
+      }
+      return null;
+    }
+  }
+
 }
