@@ -1,7 +1,7 @@
-# AI-Powered Medical Diagnosis App
+# SmartDoc Medical Diagnosis App
 
 ## Overview
-The **AI-Powered Medical Diagnosis App** is a cutting-edge healthcare solution designed to deliver **instant, accurate, and reliable diagnoses** for various skin diseases. Leveraging **AI-driven image classification** and seamless integration of advanced technologies, the app empowers users to upload or capture medical images and receive detailed analysis, recommendations, and severity assessments.
+The **SmartDoc Medical Diagnosis App** is a cutting-edge healthcare solution designed to deliver **instant, accurate, and reliable diagnoses** for various skin diseases. Leveraging **AI-driven image classification** and seamless integration of advanced technologies, the app empowers users to upload or capture medical images and receive detailed analysis, recommendations, and severity assessments.
 
 ---
 
