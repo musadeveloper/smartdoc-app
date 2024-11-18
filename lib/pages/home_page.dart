@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '/services/auth_service.dart'; // Adjust import as needed
+import '/services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomePage extends StatelessWidget {
   final AuthService _authService = AuthService();
@@ -10,18 +11,34 @@ class HomePage extends StatelessWidget {
     Navigator.pushReplacementNamed(context, '/login');
   }
 
+  // Function to navigate to Request Diagnosis Page
   void _navigateToRequestDiagnosis(BuildContext context) {
     Navigator.pushNamed(context, '/requestDiagnosis');
   }
 
-  void _navigateToViewDiagnosis(BuildContext context) {
-    Navigator.pushNamed(context, '/viewDiagnosis');
+  // Function to navigate to View Past Diagnosis Page
+  void _navigateToViewPastDiagnosis(BuildContext context) {
+    Navigator.pushNamed(context, '/viewPastDiagnosis');
+  }
+
+  // Function to get Username
+  Future<String> _getUserName() async {
+
+    final String email = _authService.getCurrentUserEmail();
+
+
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(email).get();
+
+    if (userDoc.exists) {
+
+      return userDoc['name'] ?? 'Unknown User';
+    } else {
+      return 'User not found';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final String userEmail = _authService.getCurrentUserEmail();
-
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -41,37 +58,56 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      drawer: Drawer(
-        // Define the sidebar content here
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xFF5DB8AE),
-              ),
-              child: Text(
-                userEmail,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
+      drawer: FutureBuilder<String>(
+        future: _getUserName(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Drawer(
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Drawer(
+              child: Center(child: Text('Error loading user data')),
+            );
+          }
+
+          final userName = snapshot.data ?? 'No name found';
+
+          return Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Color(0xFF5DB8AE),
+                  ),
+                  child: Text(
+                    userName,  // Display user name
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
                 ),
-              ),
+                ListTile(
+                  title: Text('Home'),
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, '/home');
+                  },
+                ),
+                ListTile(
+                  title: Text('Profile'),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/profile');  // Navigate to Profile page
+                  },
+                ),
+                // Additional Drawer items can go here (like settings, help, etc.)
+              ],
             ),
-            ListTile(
-              title: Text('Home'),
-              onTap: () {
-                Navigator.pushReplacementNamed(context, '/home');
-              },
-            ),
-            ListTile(
-              title: Text('Profile'),
-              onTap: () {
-                Navigator.pushNamed(context, '/profile');
-              },
-            ),
-          ],
-        ),
+          );
+        },
       ),
       body: Column(
         children: [
@@ -116,7 +152,7 @@ class HomePage extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'This is an information box with an icon on the right side of the paragraph.',
+                    'The Smart Doctor app is a digital health assistant that allows users to request diagnoses, manage health records, and interact with medical services, all in a seamless and user-friendly interface.',
                     style: TextStyle(fontSize: 16.0),
                   ),
                 ),
@@ -152,7 +188,7 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => _navigateToViewDiagnosis(context),
+                  onTap: () => _navigateToViewPastDiagnosis(context),
                   child: Container(
                     padding: EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
@@ -161,7 +197,7 @@ class HomePage extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        'View a Diagnosis',
+                        'View Past Diagnosis',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18.0,
