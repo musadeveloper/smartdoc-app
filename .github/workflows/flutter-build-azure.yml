@@ -43,4 +43,4 @@ jobs:
           --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }} \
           --container-name ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }} \
           --file build/app/outputs/flutter-apk/app-release.apk \
-          --name app-release.apk
+          --name smartdoc.apk
