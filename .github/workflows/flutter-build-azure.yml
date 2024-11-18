@@ -1,0 +1,42 @@
+name: Build and Deploy Flutter APK to Azure Blob Storage
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master  
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Flutter
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '<latest>' # Use specific version if needed
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: flutter pub get
+
+    # Step 4: Build APK
+    - name: Build APK
+      run: flutter build apk --release
+
+    # Step 5: Upload to Azure Blob Storage
+    - name: Upload APK to Azure Blob Storage
+      uses: azure/azure-storage-blob-upload@v1
+      with:
+        connection-string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+        container-name: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+        source: build/app/outputs/flutter-apk/app-release.apk
+        blob-name: app-release.apk
